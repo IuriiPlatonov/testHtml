@@ -5,19 +5,32 @@
     <title>Nik test</title>
 </head>
 <body>
-
-<label id="timeLabel"> время будет тут </label>
+<div>
+    <label id="timeLabel"> время будет тут </label>
+    <br>
+    <input id="currentDateTimeButton" title="click" type="button" value="текущее время"/>
+    <br>
+    <input id="userName"/> <label>имя пользователя</label>
+    <br>
+    <input id="createUserButton" title="создать пользователя" type="button" value="создать"/>
+    <br>
+    <input id="deleteUserButton" title="удалить пользователя" type="button" value="удалить"/>
+    <br>
+    <label> Список пользователей </label>
+    <ul id="userList"/>
+</div>
 <br>
-<input id="currentDateTimeButton" title="click" type="button" value="текущее время"/>
-<br>
-<input id="userName"/> <label>имя пользователя</label>
-<br>
-<input id="createUserButton" title="создать пользователя" type="button" value="создать"/>
-<br>
-<input id="deleteUserButton" title="удалить пользователя" type="button" value="удалить"/>
-<br>
-<label> Список пользователей </label>
-<ul id="userList"/>
+<div>
+    <p>1+1=?</p>
+    <input id="input1"/>
+    <input id="btn1" type="button" value="отправить"/>
+    <br>
+    <p>2+2*2=?</p>
+    <input id="input2"/>
+    <input id="btn2" type="button" value="отправить"/>
+    <br>
+    <input id="rightAnswerBtn" type="button" value="Правильных ответов:" ><P id="showRightAnswer" ></P>
+</div>
 <script style="display: none;">
     let currentDateTimeButton = document.getElementById("currentDateTimeButton");
     let createUserButton = document.getElementById("createUserButton");
@@ -28,6 +41,67 @@
     deleteUserButton.addEventListener('click', deleteUser);
 
     getUsers();
+
+    let btn1 = document.getElementById('btn1');
+    let btn2 = document.getElementById('btn2');
+    let rightAnswerBtn = document.getElementById('rightAnswerBtn');
+    let input1 = document.getElementById('input1');
+    let input2 = document.getElementById('input2');
+
+    btn1.addEventListener('click', sendBtn(input1.value, 2));
+    btn2.addEventListener('click', sendBtn(input2.value, 6));
+    rightAnswerBtn.addEventListener('click', show);
+
+
+    function sendBtn(val, res) {
+        // если правильный ответ, то помещаю в массив 1, если не правильный, то 0. Потом сумму всех элементов массива помещаю в отдельную переменную allAnswSum 
+        let answ = [];
+        if (val == "") return;
+        if (val == res) answ.push(1)
+        else answ.push(0);
+        let allAnswSum = answ.reduce(function(acc, elem) {
+            return acc + elem;
+        }, 0);
+
+        // отправляю переменную allAnswSum на сервер
+        let xhr = new XMLHttpRequest()
+        xhr.onload = function () {
+            if (xhr.readyState === 4 && xhr.status === 200);
+        }
+        let data = JSON.stringify({"mathAnswer": allAnswSum});
+        xhr.open("POST", "https://testapifromuron.herokuapp.com/api/rightAnswer", true);
+        xmlHttp.setRequestHeader("Content-Type", "application/json");
+        xhr.send(data);
+
+
+       
+    }
+
+    // получаю данные с сервера и вывожу их в showRightAnswer
+    function show() {
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let showRightAnswer = document.getElementById('showRightAnswer');
+                showRightAnswer.innerText = xhr.responseText;
+            }
+        }
+        xhr.open("GET", "https://testapifromuron.herokuapp.com/api/rightAnswer", true);
+        xhr.send();
+    }
+
+    // function sendBtn(res) {
+    //     let xhr = new XMLHttpRequest();
+    //     xhr.onload = function () {
+    //         if (xhr.readyState === 4 && xhr.status === 200) {
+    //             getAnswer();
+    //         }
+
+    //     }
+    //     xhr.open("POST", "https://testapifromuron.herokuapp.com/api/rightAnswer", true);
+    //     xhr.setRequestHeader("Content-Type", "application/json");
+    //     xhr.send();
+    // }
 
     function getCurrentDateTime() {
         let xhr = new XMLHttpRequest();
@@ -49,6 +123,7 @@
             }
         }
         let userName = document.getElementById("userName");
+        if(userName.value == "") return;
         let data = JSON.stringify({"userName": userName.value});
         xmlHttp.open("POST", "https://testapifromuron.herokuapp.com/api/createUser", true);
         xmlHttp.setRequestHeader("Content-Type", "application/json");
@@ -67,6 +142,7 @@
         url.searchParams.append("userName", userName.value);
         xmlHttp.open("GET", url, true);
         xmlHttp.send();
+        location.reload();
     }
 
     function getUsers() {
@@ -91,6 +167,8 @@
         let ul = document.getElementById('userList');
         ul.appendChild(li);
     }
+
+
 
 </script>
 </body>
